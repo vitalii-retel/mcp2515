@@ -1,6 +1,6 @@
 Plain CAN BUS scanner.
 
-Install mcp2515 library to your Arduino IDE.
+Install mcp2515 library from https://github.com/coryjfowler/MCP_CAN_lib to your Arduino IDE.
 
 If you have edited `http-client` run `node generate-http-client-files.ts` to update esp8266 scetch.
 
