@@ -38,7 +38,7 @@ void wifiSetup() {
 /******************************/
 // MCP2515 oscillator frequency
 #define CRYSTAL_FREQUENCY MCP_8MHZ
-#define LOOPBACK_MODE true
+#define LOOPBACK_MODE false
 // CAN0 INT and CS
 #define CAN0_INT D2
 MCP_CAN CAN0(D1);   // Set CS to pin D1
@@ -194,7 +194,6 @@ void handleGetData() {
     }
 
     response += "}";
-    Serial.println(response);
     sendJsonContent(200, response);
 }
 
