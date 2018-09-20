@@ -41,7 +41,7 @@
     };
     Item.prototype.remove = function () {
         this.el.parentElement.removeChild(this.el);
-    }
+    };
 
     function Table() {
         this.items = {};
@@ -82,36 +82,38 @@
         window.clearTimeout(this.timer);
     };
     Session.prototype.tick = function () {
-        var self = this;
         request({
             type: 'GET',
             url: 'getdata'
-        }, function (response) {
+        }, response => {
             if (response.error) {
-                alert(repsonse.error);
+                console.error(response.error);
             } else {
                 for (var i = 0; i < response.data.length; i++) {
-                    self.table.addData(response.data[i]);
+                    this.table.addData(response.data[i]);
                 }
             }
-            if (self.running) {
-                self.timerOn();
+            if (this.running) {
+                this.timerOn();
             }
         });
     };
     Session.prototype.start = function (speed, cb) {
         this.table.clear();
-        var self = this;
         request({
-            type: 'GET',
-            url: 'start=' + speed
-        }, function (response) {
+            type: 'POST',
+            url: 'start',
+            body: `speed=${speed}`,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }, response => {
             if (response.error) {
                 alert(response.error);
                 cb(response.error);
             } else {
-                self.running = true;
-                self.tick();
+                this.running = true;
+                this.tick();
                 cb();
             }
         });
@@ -134,36 +136,61 @@
         var speedEl = document.querySelector('.buttons .speed');
         var startEl = document.querySelector('.buttons .start');
         var stopEl = document.querySelector('.buttons .stop');
-        var self = this;
 
         this.disableButton(stopEl);
 
-        startEl.addEventListener('click', function() {
-            self.disableButton(startEl);
-            self.disableButton(speedEl);
-            self.start(speedEl.value, function (error) {
+        startEl.addEventListener('click', () => {
+            this.disableButton(startEl);
+            this.disableButton(speedEl);
+            this.start(speedEl.value, error => {
                 if (error) {
-                    self.enableButton(speedEl);
-                    self.enableButton(startEl);
+                    this.enableButton(speedEl);
+                    this.enableButton(startEl);
                 } else {
-                    self.enableButton(stopEl);
+                    this.enableButton(stopEl);
                 }
             });
         });
 
-        stopEl.addEventListener('click', function() {
-            self.disableButton(stopEl);
-            self.stop(speedEl.value, function () {
-                self.enableButton(startEl);
-                self.enableButton(speedEl);
+        stopEl.addEventListener('click', () => {
+            this.disableButton(stopEl);
+            this.stop(() => {
+                this.enableButton(startEl);
+                this.enableButton(speedEl);
             });
         });
     };
 
-    function request(params, cb) {
+    function RequestFlag() {
+        this.count = 0;
+        this.el = document.querySelector('.buttons .request-flag');
+        return {
+            add: this.add.bind(this),
+            remove: this.remove.bind(this),
+        };
+    };
+    RequestFlag.prototype.update = function () {
+        if (this.count > 0) {
+            this.el.classList.add('on');
+        } else {
+            this.el.classList.remove('on');
+        }
+    };
+    RequestFlag.prototype.add = function () {
+        this.count++;
+        this.update();
+    };
+    RequestFlag.prototype.remove = function () {
+        this.count--;
+        this.update();
+    };
+
+    function _request(requestFlag, params, cb) {
+        requestFlag.add();
         var httpRequest = new XMLHttpRequest();
         httpRequest.onreadystatechange = function(){
             if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                requestFlag.remove();
                 try {
                     cb(JSON.parse(httpRequest.responseText));
                 } catch (e) {
@@ -173,8 +200,17 @@
             }
         };
         httpRequest.open(params.type, params.url, true);
-        httpRequest.send();
+        if (params.headers) {
+            for (var key in params.headers) {
+                if (!params.headers.hasOwnProperty(key)) {
+                    continue;
+                }
+                httpRequest.setRequestHeader(key, params.headers[key]);
+            }
+        }
+        httpRequest.send(params.body || null);
     }
+    var request = _request.bind(this, new RequestFlag());
 
     var session = new Session();
     session.init();

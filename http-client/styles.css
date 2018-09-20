@@ -18,6 +18,17 @@ body {
     padding-left: 15px;
     padding-right: 15px;
 }
+.buttons .request-flag {
+    width: 50px;
+    height: 20px;
+    display: inline-block;
+    margin-left: 50px;
+    background-color: blue;
+    visibility: hidden;
+}
+.buttons .request-flag.on {
+    visibility: visible;
+}
 
 .table {
     background-color: #F9F9FF;
@@ -59,7 +70,7 @@ body {
 }
 
 .table .item .data-item .numbers {
-    margin: 0;
+    margin: 0 10px 0 0;
     animation-duration: 30s;
     animation-name: highlight;
     animation-timing-function: linear;
